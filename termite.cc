@@ -60,6 +60,7 @@ struct search_panel_info {
 
 struct config_info {
     char *browser;
+    char *theme;
     gboolean dynamic_title, urgent_on_bell, clickable_url;
     int tag;
 };
@@ -1033,10 +1034,11 @@ static void load_config(GtkWindow *window, VteTerminal *vte, config_info *info,
         GdkColor color, palette[palette_size];
 
         char color_key[] = "color000";
+        const char *theme = info->theme ? info->theme : "colors";
 
         for (unsigned i = 0; i < palette_size; i++) {
             snprintf(color_key, sizeof color_key, "color%u", i);
-            if (!get_config_color(config, "colors", color_key, &palette[i])) {
+            if (!get_config_color(config, theme, color_key, &palette[i])) {
                 if (i < 16) {
                     palette[i].blue = (i & 4) ? 0xc000 : 0;
                     palette[i].green = (i & 2) ? 0xc000 : 0;
@@ -1062,23 +1064,23 @@ static void load_config(GtkWindow *window, VteTerminal *vte, config_info *info,
             }
         }
         vte_terminal_set_colors(vte, nullptr, nullptr, palette, palette_size);
-        if (get_config_color(config, "colors", "foreground", &color)) {
+        if (get_config_color(config, theme, "foreground", &color)) {
             vte_terminal_set_color_foreground(vte, &color);
         }
-        if (get_config_color(config, "colors", "foreground_bold", &color)) {
+        if (get_config_color(config, theme, "foreground_bold", &color)) {
             vte_terminal_set_color_bold(vte, &color);
         }
-        if (get_config_color(config, "colors", "foreground_dim", &color)) {
+        if (get_config_color(config, theme, "foreground_dim", &color)) {
             vte_terminal_set_color_dim(vte, &color);
         }
-        if (get_config_color(config, "colors", "background", &color)) {
+        if (get_config_color(config, theme, "background", &color)) {
             vte_terminal_set_color_background(vte, &color);
             vte_terminal_set_background_tint_color(vte, &color);
         }
-        if (get_config_color(config, "colors", "cursor", &color)) {
+        if (get_config_color(config, theme, "cursor", &color)) {
             vte_terminal_set_color_cursor(vte, &color);
         }
-        if (get_config_color(config, "colors", "highlight", &color)) {
+        if (get_config_color(config, theme, "highlight", &color)) {
             vte_terminal_set_color_highlight(vte, &color);
         }
 
@@ -1128,12 +1130,14 @@ int main(int argc, char **argv) {
     GError *error = NULL;
     const char * const term = "xterm-termite";
     const char *directory = nullptr;
+    char *theme = nullptr;
     gboolean version = FALSE;
 
     GOptionContext *context = g_option_context_new(NULL);
     char *role = NULL, *geometry = NULL, *execute = NULL;
     const GOptionEntry entries[] = {
         {"role", 'r', 0, G_OPTION_ARG_STRING, &role, "The role to use", "ROLE"},
+        {"theme", 't', 0, G_OPTION_ARG_STRING, &theme, "The theme to use", "THEME"},
         {"geometry", 0, 0, G_OPTION_ARG_STRING, &geometry, "Window geometry", "GEOMETRY"},
         {"directory", 'd', 0, G_OPTION_ARG_STRING, &directory, "Change to directory", "DIRECTORY"},
         {"exec", 'e', 0, G_OPTION_ARG_STRING, &execute, "Command to execute", "COMMAND"},
@@ -1203,7 +1207,7 @@ int main(int argc, char **argv) {
          gtk_drawing_area_new(),
          overlay_mode::hidden},
         {vi_mode::insert, 0, 0, 0, 0},
-        {nullptr, FALSE, FALSE, FALSE, -1}
+        {nullptr, theme, FALSE, FALSE, FALSE, -1}
     };
 
     load_config(GTK_WINDOW(window), vte, &info.config, &geometry);

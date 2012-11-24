@@ -87,7 +87,8 @@ enum class vi_mode {
     command,
     visual,
     visual_line,
-    visual_block
+    visual_block,
+    urlselect
 };
 
 struct select_info {
@@ -486,6 +487,20 @@ static void exit_command_mode(VteTerminal *vte, select_info *select) {
     select->mode = vi_mode::insert;
 }
 
+static void enter_urlselect_mode(VteTerminal *vte, select_info *select) {
+    vte_terminal_disconnect_pty_read(vte);
+    select->mode = vi_mode::urlselect;
+    vte_terminal_get_cursor_position(vte, &select->origin_col, &select->origin_row);
+    search(vte, url_regex, true);
+}
+
+static void exit_urlselect_mode(VteTerminal *vte, select_info *select) {
+    vte_terminal_set_cursor_position(vte, select->origin_col, select->origin_row);
+    vte_terminal_connect_pty_read(vte);
+    vte_terminal_select_none(vte);
+    select->mode = vi_mode::insert;
+}
+
 static void toggle_visual(VteTerminal *vte, select_info *select, vi_mode mode) {
     if (select->mode == mode) {
         select->mode = vi_mode::command;
@@ -809,7 +824,28 @@ gboolean key_press_cb(VteTerminal *vte, GdkEventKey *event, keybind_info *info) 
         return TRUE;
     }
 
-    if (info->select.mode != vi_mode::insert) {
+    if (info->select.mode == vi_mode::urlselect) {
+        switch (gdk_keyval_to_lower(event->keyval)) {
+            case GDK_KEY_k:
+                search(vte, url_regex, true);
+                break;
+            case GDK_KEY_j:
+                search(vte, url_regex, false);
+                break;
+            case GDK_KEY_y:
+                vte_terminal_copy_clipboard(vte);
+                break;
+            case GDK_KEY_o:
+                open_selection(info->config.browser, vte);
+                break;
+            case GDK_KEY_Return:
+                open_selection(info->config.browser, vte);
+                exit_urlselect_mode(vte, &info->select);
+                break;
+        }
+        return TRUE;
+    }
+    else if (info->select.mode != vi_mode::insert) {
         if (modifiers == GDK_CONTROL_MASK) {
             switch (gdk_keyval_to_lower(event->keyval)) {
                 case GDK_KEY_bracketleft:
@@ -981,6 +1017,9 @@ gboolean key_press_cb(VteTerminal *vte, GdkEventKey *event, keybind_info *info) 
             case GDK_KEY_space:
             case GDK_KEY_nobreakspace: // shift-space on some keyboard layouts
                 enter_command_mode(vte, &info->select);
+                return TRUE;
+            case GDK_KEY_z:
+                enter_urlselect_mode(vte, &info->select);
                 return TRUE;
             case GDK_KEY_x:
                 enter_command_mode(vte, &info->select);

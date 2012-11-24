@@ -1025,8 +1025,7 @@ gboolean key_press_cb(VteTerminal *vte, GdkEventKey *event, keybind_info *info) 
             case GDK_KEY_t:
                 launch_in_directory(vte);
                 return TRUE;
-            case GDK_KEY_space:
-            case GDK_KEY_nobreakspace: // shift-space on some keyboard layouts
+            case GDK_KEY_Escape:
                 enter_command_mode(vte, &info->select);
                 return TRUE;
             case GDK_KEY_u:

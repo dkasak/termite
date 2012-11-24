@@ -1014,7 +1014,7 @@ gboolean key_press_cb(VteTerminal *vte, GdkEventKey *event, keybind_info *info) 
         }
         return TRUE;
     }
-    if (modifiers == (GDK_CONTROL_MASK|GDK_SHIFT_MASK)) {
+    if (modifiers == (GDK_MOD1_MASK)) {
         switch (gdk_keyval_to_lower(event->keyval)) {
             case GDK_KEY_plus:
                 increase_font_scale(vte);

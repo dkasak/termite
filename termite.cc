@@ -28,6 +28,7 @@
 #include <vector>
 #include <set>
 #include <string>
+#include <cstdio>
 
 #include <gtk/gtk.h>
 #include <vte/vte.h>
@@ -1028,7 +1029,7 @@ gboolean key_press_cb(VteTerminal *vte, GdkEventKey *event, keybind_info *info) 
             case GDK_KEY_nobreakspace: // shift-space on some keyboard layouts
                 enter_command_mode(vte, &info->select);
                 return TRUE;
-            case GDK_KEY_z:
+            case GDK_KEY_u:
                 enter_urlselect_mode(vte, &info->select);
                 return TRUE;
             case GDK_KEY_x:

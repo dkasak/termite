@@ -37,25 +37,25 @@ INSERT MODE
 -----------
 
 +----------------------+---------------------------------------------+
-| ``ctrl-shift-x``     | activate url hints mode                     |
+| ``alt-x``            | activate url hints mode                     |
 +----------------------+---------------------------------------------+
-| ``ctrl-shift-r``     | reload configuration file                   |
+| ``alt-r``            | reload configuration file                   |
 +----------------------+---------------------------------------------+
-| ``ctrl-shift-c``     | copy to CLIPBOARD                           |
+| ``alt-c``            | copy to CLIPBOARD                           |
 +----------------------+---------------------------------------------+
-| ``ctrl-shift-v``     | paste from CLIPBOARD                        |
+| ``alt-v``            | paste from CLIPBOARD                        |
 +----------------------+---------------------------------------------+
-| ``ctrl-shift-u``     | unicode input (standard GTK binding)        |
+| ``alt-u``            | unicode input (standard GTK binding)        |
 +----------------------+---------------------------------------------+
 | ``ctrl-tab``         | start scrollback completion                 |
 +----------------------+---------------------------------------------+
-| ``ctrl-shift-space`` | start selection mode                        |
+| ``alt-escape``       | start command mode                          |
 +----------------------+---------------------------------------------+
-| ``ctrl-shift-t``     | open terminal in the current directory [1]_ |
+| ``alt-t``            | open terminal in the current directory [1]_ |
 +----------------------+---------------------------------------------+
-| ``ctrl-shift-up``    | scroll up a line                            |
+| ``alt-up``           | scroll up a line                            |
 +----------------------+---------------------------------------------+
-| ``ctrl-shift-down``  | scroll down a line                          |
+| ``alt-down``         | scroll down a line                          |
 +----------------------+---------------------------------------------+
 | ``shift-pageup``     | scroll up a page                            |
 +----------------------+---------------------------------------------+
@@ -165,11 +165,11 @@ URL SELECT MODE
 ---------------
 
 +----------------------+-------------------------------------------------------+
-| ``ctrl-shift-z``     | enter url select mode                                 |  
+| ``alt-u``            | enter url select mode                                 |  
 +----------------------+-------------------------------------------------------+
-| ``ctrl-shift-y``     | copy currently select url to CLIPBOARD                |
+| ``alt-y``            | copy currently select url to CLIPBOARD                |
 +----------------------+-------------------------------------------------------+
-| ``ctrl-shift-o``     | open the currently select url                         |
+| ``alt-o``            | open the currently select url                         |
 +----------------------+-------------------------------------------------------+
 | ``Return``           | open the currently selected url and exit command mode |
 +----------------------+-------------------------------------------------------+

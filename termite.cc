@@ -158,6 +158,7 @@ static void bell_cb(GtkWidget *vte, gboolean *urgent_on_bell);
 static gboolean focus_cb(GtkWindow *window);
 
 static GtkTreeModel *create_completion_model(VteTerminal *vte);
+static gboolean matches(VteTerminal *vte, const char *pattern);
 static void search(VteTerminal *vte, const char *pattern, bool reverse);
 static void overlay_show(search_panel_info *info, overlay_mode mode, VteTerminal *vte);
 static void get_vte_padding(VteTerminal *vte, int *left, int *top, int *right, int *bottom);
@@ -1029,7 +1030,9 @@ gboolean key_press_cb(VteTerminal *vte, GdkEventKey *event, keybind_info *info) 
                 enter_command_mode(vte, &info->select);
                 return TRUE;
             case GDK_KEY_u:
-                enter_urlselect_mode(vte, &info->select);
+                if (matches(vte, url_regex)) {
+                    enter_urlselect_mode(vte, &info->select);
+                }
                 return TRUE;
             case GDK_KEY_x:
                 enter_command_mode(vte, &info->select);
@@ -1283,6 +1286,25 @@ GtkTreeModel *create_completion_model(VteTerminal *vte) {
     }
 
     return GTK_TREE_MODEL(store);
+}
+
+gboolean matches(VteTerminal *vte, const char *pattern) {
+    GRegex *regex = g_regex_new(pattern, G_REGEX_CASELESS, G_REGEX_MATCH_NOTEMPTY, NULL);
+    GArray *attributes = g_array_new(FALSE, FALSE, (unsigned int) sizeof (vte_char_attributes));
+    char *content = vte_terminal_get_text(vte, NULL, NULL, attributes);
+
+    GMatchInfo *info;
+    g_regex_match_full(regex, content, -1, 0, (GRegexMatchFlags)0, &info, nullptr);
+    gboolean match;
+    if (g_match_info_matches(info)) {
+        match = TRUE;
+    } else {
+        match = FALSE;
+    }
+        
+    g_match_info_free(info);
+
+    return match;
 }
 
 void search(VteTerminal *vte, const char *pattern, bool reverse) {

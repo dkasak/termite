@@ -29,6 +29,7 @@ build() {
 package() {
   cd "$srcdir/termite-src"
   make PREFIX=/usr DESTDIR="$pkgdir" install
+  rm -rf "$pkgdir/usr/share/terminfo"
   install -Dm644 config "$pkgdir/etc/xdg/termite/config"
 }
 

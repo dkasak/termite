@@ -841,6 +841,7 @@ gboolean key_press_cb(VteTerminal *vte, GdkEventKey *event, keybind_info *info) 
             case GDK_KEY_Return:
                 open_selection(info->config.browser, vte);
                 /* fall through */
+                [[clang::fallthrough]];
             case GDK_KEY_Escape:
                 exit_urlselect_mode(vte, &info->select);
                 break;

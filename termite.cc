@@ -497,7 +497,7 @@ static void enter_urlselect_mode(VteTerminal *vte, select_info *select) {
 static void exit_urlselect_mode(VteTerminal *vte, select_info *select) {
     vte_terminal_set_cursor_position(vte, select->origin_col, select->origin_row);
     vte_terminal_connect_pty_read(vte);
-    vte_terminal_select_none(vte);
+    vte_terminal_unselect_all(vte);
     select->mode = vi_mode::insert;
 }
 

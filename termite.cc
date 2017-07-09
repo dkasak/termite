@@ -1290,8 +1290,8 @@ GtkTreeModel *create_completion_model(VteTerminal *vte) {
 
 gboolean matches(VteTerminal *vte, const char *pattern) {
     GRegex *regex = g_regex_new(pattern, G_REGEX_CASELESS, G_REGEX_MATCH_NOTEMPTY, NULL);
-    GArray *attributes = g_array_new(FALSE, FALSE, (unsigned int) sizeof (vte_char_attributes));
-    char *content = vte_terminal_get_text(vte, NULL, NULL, attributes);
+    GArray *attributes = g_array_new(FALSE, FALSE, sizeof (VteCharAttributes));
+    char *content = vte_terminal_get_text(vte, nullptr, nullptr, attributes);
 
     GMatchInfo *info;
     g_regex_match_full(regex, content, -1, 0, (GRegexMatchFlags)0, &info, nullptr);
@@ -1301,7 +1301,7 @@ gboolean matches(VteTerminal *vte, const char *pattern) {
     } else {
         match = FALSE;
     }
-        
+
     g_match_info_free(info);
 
     return match;

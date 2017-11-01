@@ -1050,9 +1050,6 @@ gboolean key_press_cb(VteTerminal *vte, GdkEventKey *event, keybind_info *info) 
             case GDK_KEY_r:
                 reload_config();
                 return TRUE;
-            case GDK_KEY_l:
-                vte_terminal_reset(vte, TRUE, TRUE);
-                return TRUE;
             default:
                 if (modify_key_feed(event, info, modify_table))
                     return TRUE;
@@ -1074,6 +1071,9 @@ gboolean key_press_cb(VteTerminal *vte, GdkEventKey *event, keybind_info *info) 
                 return TRUE;
             case GDK_KEY_equal:
                 reset_font_scale(vte, info->config.font_scale);
+                return TRUE;
+            case GDK_KEY_l:
+                vte_terminal_reset(vte, TRUE, TRUE);
                 return TRUE;
             default:
                 if (modify_key_feed(event, info, modify_table))

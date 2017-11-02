@@ -1058,6 +1058,14 @@ gboolean key_press_cb(VteTerminal *vte, GdkEventKey *event, keybind_info *info) 
                (modifiers == (GDK_CONTROL_MASK|GDK_MOD1_MASK|GDK_SHIFT_MASK))) {
         if (modify_key_feed(event, info, modify_meta_table))
             return TRUE;
+    } else if (modifiers == (GDK_CONTROL_MASK|GDK_SHIFT_MASK)) {
+        switch (gdk_keyval_to_lower(event->keyval)) {
+            case GDK_KEY_l:
+                vte_terminal_reset(vte, TRUE, TRUE);
+                return TRUE;
+        }
+        if (modify_key_feed(event, info, modify_meta_table))
+            return TRUE;
     } else if (modifiers == GDK_CONTROL_MASK) {
         switch (gdk_keyval_to_lower(event->keyval)) {
             case GDK_KEY_Tab:
@@ -1071,9 +1079,6 @@ gboolean key_press_cb(VteTerminal *vte, GdkEventKey *event, keybind_info *info) 
                 return TRUE;
             case GDK_KEY_equal:
                 reset_font_scale(vte, info->config.font_scale);
-                return TRUE;
-            case GDK_KEY_l:
-                vte_terminal_reset(vte, TRUE, TRUE);
                 return TRUE;
             default:
                 if (modify_key_feed(event, info, modify_table))

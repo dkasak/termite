@@ -1,7 +1,7 @@
 # Maintainer: Denis Kasak <dkasak AT termina DOT org DOT uk>
 
 pkgname=termite-dkasak-git
-pkgver=20171101
+pkgver=20171102
 pkgrel=1
 pkgdesc="A simple VTE-based terminal"
 arch=('i686' 'x86_64')

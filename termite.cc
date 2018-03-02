@@ -164,9 +164,9 @@ static void overlay_show(search_panel_info *info, overlay_mode mode, VteTerminal
 static void get_vte_padding(VteTerminal *vte, int *left, int *top, int *right, int *bottom);
 static char *check_match(VteTerminal *vte, GdkEventButton *event);
 static void load_config(GtkWindow *window, VteTerminal *vte, GtkWidget *scrollbar, GtkWidget *hbox,
-                        config_info *info, char **geometry, char **icon, bool *show_scrollbar);
+                        config_info *info, char **icon, bool *show_scrollbar);
 static void set_config(GtkWindow *window, VteTerminal *vte, GtkWidget *scrollbar, GtkWidget *hbox,
-                       config_info *info, char **geometry, char **icon, bool *show_scrollbar,
+                       config_info *info, char **icon, bool *show_scrollbar,
                        GKeyFile *config);
 static long first_row(VteTerminal *vte);
 
@@ -581,6 +581,11 @@ static void move_to_row_start(VteTerminal *vte, select_info *select, long row) {
 }
 
 static void open_selection(char *browser, VteTerminal *vte) {
+    if (!vte_terminal_get_has_selection(vte)) {
+        g_printerr("no selection to open\n");
+        return;
+    }
+
     if (browser) {
         auto selection = make_unique(vte_terminal_get_selection(vte), g_free);
         if (selection && *selection) {
@@ -970,7 +975,11 @@ gboolean key_press_cb(VteTerminal *vte, GdkEventKey *event, keybind_info *info) 
                 toggle_visual(vte, &info->select, vi_mode::visual_line);
                 break;
             case GDK_KEY_y:
+#if VTE_CHECK_VERSION(0, 50, 0)
+                vte_terminal_copy_clipboard_format(vte, VTE_FORMAT_TEXT);
+#else
                 vte_terminal_copy_clipboard(vte);
+#endif
                 break;
             case GDK_KEY_slash:
                 overlay_show(&info->panel, overlay_mode::search, vte);
@@ -1042,7 +1051,11 @@ gboolean key_press_cb(VteTerminal *vte, GdkEventKey *event, keybind_info *info) 
                 exit_command_mode(vte, &info->select);
                 return TRUE;
             case GDK_KEY_c:
+#if VTE_CHECK_VERSION(0, 50, 0)
+                vte_terminal_copy_clipboard_format(vte, VTE_FORMAT_TEXT);
+#else
                 vte_terminal_copy_clipboard(vte);
+#endif
                 return TRUE;
             case GDK_KEY_v:
                 vte_terminal_paste_clipboard(vte);
@@ -1481,7 +1494,7 @@ static void load_theme(GtkWindow *window, VteTerminal *vte, GKeyFile *config, hi
 }
 
 static void load_config(GtkWindow *window, VteTerminal *vte, GtkWidget *scrollbar,
-                        GtkWidget *hbox, config_info *info, char **geometry, char **icon,
+                        GtkWidget *hbox, config_info *info, char **icon,
                         bool *show_scrollbar) {
     const std::string default_path = "/termite/config";
     GKeyFile *config = g_key_file_new();
@@ -1517,19 +1530,14 @@ static void load_config(GtkWindow *window, VteTerminal *vte, GtkWidget *scrollba
     }
 
     if (loaded) {
-        set_config(window, vte, scrollbar, hbox, info, geometry, icon, show_scrollbar, config);
+        set_config(window, vte, scrollbar, hbox, info, icon, show_scrollbar, config);
     }
     g_key_file_free(config);
 }
 
 static void set_config(GtkWindow *window, VteTerminal *vte, GtkWidget *scrollbar, GtkWidget *hbox,
-                       config_info *info, char **geometry, char **icon, bool *show_scrollbar_ptr,
+                       config_info *info, char **icon, bool *show_scrollbar_ptr,
                        GKeyFile *config) {
-    if (geometry) {
-        if (auto s = get_config_string(config, "options", "geometry")) {
-            *geometry = *s;
-        }
-    }
 
     auto cfg_bool = [config](const char *key, gboolean value) {
         return get_config<gboolean>(g_key_file_get_boolean,
@@ -1688,7 +1696,7 @@ int main(int argc, char **argv) {
     gboolean version = FALSE, hold = FALSE;
 
     GOptionContext *context = g_option_context_new(nullptr);
-    char *role = nullptr, *geometry = nullptr, *execute = nullptr, *config_file = nullptr;
+    char *role = nullptr, *execute = nullptr, *config_file = nullptr;
     char *title = nullptr, *icon = nullptr;
     bool show_scrollbar = false;
     const GOptionEntry entries[] = {
@@ -1697,7 +1705,6 @@ int main(int argc, char **argv) {
         {"role", 'r', 0, G_OPTION_ARG_STRING, &role, "The role to use", "ROLE"},
         {"title", 't', 0, G_OPTION_ARG_STRING, &title, "Window title", "TITLE"},
         {"directory", 'd', 0, G_OPTION_ARG_STRING, &directory, "Change to directory", "DIRECTORY"},
-        {"geometry", 0, 0, G_OPTION_ARG_STRING, &geometry, "Window geometry", "GEOMETRY"},
         {"hold", 0, 0, G_OPTION_ARG_NONE, &hold, "Remain open after child process exits", nullptr},
         {"config", 'c', 0, G_OPTION_ARG_STRING, &config_file, "Path of config file", "CONFIG"},
         {"icon", 'i', 0, G_OPTION_ARG_STRING, &icon, "Icon", "ICON"},
@@ -1777,11 +1784,11 @@ int main(int argc, char **argv) {
     };
 
     load_config(GTK_WINDOW(window), vte, scrollbar, hbox, &info.config,
-                geometry ? nullptr : &geometry, icon ? nullptr : &icon, &show_scrollbar);
+                icon ? nullptr : &icon, &show_scrollbar);
 
     reload_config = [&]{
         load_config(GTK_WINDOW(window), vte, scrollbar, hbox, &info.config,
-                    nullptr, nullptr, nullptr);
+                    nullptr, nullptr);
     };
     signal(SIGUSR1, [](int){ reload_config(); });
 
@@ -1836,16 +1843,11 @@ int main(int argc, char **argv) {
     } else {
         g_signal_connect(vte, "window-title-changed", G_CALLBACK(window_title_cb),
                          &info.config.dynamic_title);
-        window_title_cb(vte, &info.config.dynamic_title);
-    }
-
-    if (geometry) {
-        gtk_widget_show_all(panel_overlay);
-        gtk_widget_show_all(info.panel.entry);
-        if (!gtk_window_parse_geometry(GTK_WINDOW(window), geometry)) {
-            g_printerr("invalid geometry string: %s\n", geometry);
+        if (execute) {
+            gtk_window_set_title(GTK_WINDOW(window), execute);
+        } else {
+            window_title_cb(vte, &info.config.dynamic_title);
         }
-        g_free(geometry);
     }
 
     if (icon) {
